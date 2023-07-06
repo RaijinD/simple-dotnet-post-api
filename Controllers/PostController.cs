@@ -21,12 +21,21 @@ public class PostController : ControllerBase
         var post = await _context.Posts.Where(u => u.Id == id).FirstAsync();
         return post;
     }
+
+    //TODO: Study better this, AsEnumerable probably uses more memory, idk
     [Route("get-all")]
     [HttpGet]
-    public async Task<ActionResult<Post[]>> GetAllPost(int page = 0)
+    public ActionResult<List<Post>> GetAllPost(int page = 0)
     {
-        var posts = _context.Posts.Skip(page).Take(10);
-        return await posts.ToArrayAsync();
+        var posts = _context.Posts
+            .AsEnumerable()
+            .OrderByDescending(p => p.UpdatedAt.Date)
+            .ThenByDescending(p => p.UpdatedAt.TimeOfDay)
+            .Skip(page)
+            .Take(10)
+            .ToList();
+
+        return posts;
     }
 
     [Route("create")]
